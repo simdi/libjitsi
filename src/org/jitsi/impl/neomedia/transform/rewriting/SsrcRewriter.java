@@ -106,6 +106,11 @@ class SsrcRewriter
         }
     };
 
+    /*
+     * 
+     */
+    private TimestampEntry latestTimestampEntry;
+
     /**
      * This is the current sequence number interval for this origin
      * SSRC. We can't have it in the intervals navigable map because
@@ -235,6 +240,7 @@ class SsrcRewriter
         long oldValue = p.getTimestamp();
 
         TimestampEntry tsEntry = tsHistory.get(oldValue);
+        boolean rewritten = false;
         if (tsEntry != null && tsEntry.isFresh())
         {
             long tsDest = tsEntry.ts;
@@ -247,8 +253,30 @@ class SsrcRewriter
                     + ") timestamp using cached value "
                     + oldValue + " to " + p.getTimestamp());
             }
+
+            rewritten = true;
         }
-        else
+        else if (latestTimestampEntry != null && latestTimestampEntry.isFresh())
+        {
+            long delta = TimeUtils.rtpDiff(oldValue, latestTimestampEntry.ts);
+            if (delta < 0)
+            {
+                p.setTimestamp(latestTimestampEntry.ts - 1);
+
+                if (TRACE)
+                {
+                    logger.trace("Rewriting re-ordered frame with "
+                        + " ssrc=" + p.getSSRCAsLong()
+                        + ", seqnum=" + p.getSequenceNumber()
+                        + ") timestamp using cached value "
+                        + oldValue + " to " + p.getTimestamp());
+                }
+
+                rewritten = true;
+            }
+        }
+
+        if (!rewritten)
         {
             SsrcGroupRewriter ssrcGroupRewriter = this.ssrcGroupRewriter;
             long timestampSsrcAsLong = ssrcGroupRewriter.getTimestampSsrc();
@@ -286,8 +314,9 @@ class SsrcRewriter
                     + " to " + newValue);
             }
 
-            tsHistory.put(oldValue, new TimestampEntry(
-                        System.currentTimeMillis(), newValue));
+            latestTimestampEntry
+                = new TimestampEntry(System.currentTimeMillis(), newValue);
+            tsHistory.put(oldValue, latestTimestampEntry);
         }
     }
 
