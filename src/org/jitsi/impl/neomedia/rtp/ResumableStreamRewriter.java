@@ -223,7 +223,8 @@ public class ResumableStreamRewriter
 
         if (DEBUG)
         {
-            logger.debug("Rewriting RTCP timestamp=" + ts
+            logger.debug((rewrite ? "Rewriting" : "Restoring")
+                    +  " RTCP timestamp=" + ts
                     + ", newTimestamp=" + newTs);
         }
 
