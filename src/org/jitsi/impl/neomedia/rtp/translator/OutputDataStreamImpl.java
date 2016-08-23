@@ -808,6 +808,9 @@ class OutputDataStreamImpl
                             modified = mod;
                         }
                     }
+
+                    streamRTPManager.streamRTPManager
+                        .getRemoteClockEstimator().update(buf, offset, pktLen);
                 }
 
                 offset += pktLen;

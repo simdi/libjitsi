@@ -68,76 +68,18 @@ public class RemoteClockEstimator
     }
 
     /**
-     * Inspect an <tt>RTCPCompoundPacket</tt> and build up the state for future
-     * estimations.
-     *
-     * @param compound
-     */
-    public void update(RTCPCompoundPacket compound)
-    {
-        RTCPPacket[] rtcps;
-
-        if (compound == null
-                || (rtcps = compound.packets) == null
-                || rtcps.length == 0)
-        {
-            return;
-        }
-
-        for (RTCPPacket rtcp : rtcps)
-        {
-            switch (rtcp.type)
-            {
-            case RTCPPacket.SR:
-                update((RTCPSRPacket) rtcp);
-                break;
-            }
-        }
-    }
-
-    /**
-     * Inspects an {@code RTCPSRPacket} and builds up the state for future
-     * estimations.
-     *
-     * @param sr
-     */
-    public void update(RTCPSRPacket sr)
-    {
-        update(
-                sr.ssrc,
-                sr.ntptimestampmsw, sr.ntptimestamplsw,
-                sr.rtptimestamp);
-    }
-
-    /**
-     * Inspects a {@code SenderReport} and builds up the state for future
-     * estimations.
-     *
-     * @param sr
-     */
-    public void update(SenderReport sr)
-    {
-        update(
-                (int) sr.getSSRC(),
-                sr.getNTPTimeStampMSW(), sr.getNTPTimeStampLSW(),
-                sr.getRTPTimeStamp());
-    }
-
-    /**
      * Adds a {@code RemoteClock} for an RTP stream identified by a specific
      * SSRC.
-     *
-     * @param ssrc the SSRC of the RTP stream whose {@code RemoteClock} is to be
-     * added
-     * @param ntptimestampmsw
-     * @param ntptimestamplsw
-     * @param rtptimestamp
      */
-    private void update(
-            int ssrc,
-            long ntptimestampmsw, long ntptimestamplsw,
-            long rtptimestamp)
+    public void update(byte[] buf, int off, int len)
     {
+        int ssrc
+            = (int) RTCPHeaderUtils.getSenderSSRC(buf, off, len);
+
+        long rtptimestamp = RTCPSenderInfoUtils.getTimestamp(buf, off, len)
+            , ntptimestampmsw = RTCPSenderInfoUtils.getNtpTimestampMSW(buf, off, len)
+            , ntptimestamplsw = RTCPSenderInfoUtils.getNtpTimestampLSW(buf, off, len);
+
         long systemTimeMs
             = TimeUtils.getTime(
                     TimeUtils.constuctNtp(ntptimestampmsw, ntptimestamplsw));
