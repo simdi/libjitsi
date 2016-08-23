@@ -239,9 +239,10 @@ class SsrcRewriter
 
         long oldValue = p.getTimestamp();
 
+        long now = System.currentTimeMillis();
         TimestampEntry tsEntry = tsHistory.get(oldValue);
         boolean rewritten = false;
-        if (tsEntry != null && tsEntry.isFresh())
+        if (tsEntry != null && tsEntry.isFresh(now))
         {
             long tsDest = tsEntry.ts;
             p.setTimestamp(tsDest);
@@ -256,7 +257,8 @@ class SsrcRewriter
 
             rewritten = true;
         }
-        else if (latestTimestampEntry != null && latestTimestampEntry.isFresh())
+        else if (latestTimestampEntry != null
+                && latestTimestampEntry.isFresh(now))
         {
             long delta = TimeUtils.rtpDiff(oldValue, latestTimestampEntry.ts);
             if (delta < 0)
@@ -315,7 +317,7 @@ class SsrcRewriter
             }
 
             latestTimestampEntry
-                = new TimestampEntry(System.currentTimeMillis(), newValue);
+                = new TimestampEntry(now, newValue);
             tsHistory.put(oldValue, latestTimestampEntry);
         }
     }
@@ -512,9 +514,9 @@ class SsrcRewriter
          * @return true if the timestamp was added less than 10 seconds ago,
          * false otherwise.
          */
-        public boolean isFresh()
+        public boolean isFresh(long now)
         {
-            return (System.currentTimeMillis() - added) < 10000;
+            return (now - added) < 10000;
         }
     }
 }
