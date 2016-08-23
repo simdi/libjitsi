@@ -861,7 +861,7 @@ public class BasicRTCPTerminationStrategy
         {
             int ssrc = rtpStatsEntry.getSsrc();
             RemoteClock remoteClock = mediaStream.getStreamRTPManager()
-                .findRemoteClock(ssrc);
+                .findRemoteClock(ssrc & 0xffffffl);
             Timestamp remoteTs;
 
             if (remoteClock == null

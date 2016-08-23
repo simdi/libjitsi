@@ -76,7 +76,7 @@ class SsrcRewriter
      * The origin SSRC that this <tt>SsrcRewriter</tt> rewrites. The
      * target SSRC is managed by the parent <tt>SsrcGroupRewriter</tt>.
      */
-    private final int sourceSSRC;
+    private final long sourceSSRC;
 
     /**
      * The owner of this instance.
@@ -134,7 +134,7 @@ class SsrcRewriter
      * @param ssrcGroupRewriter
      * @param sourceSSRC
      */
-    public SsrcRewriter(SsrcGroupRewriter ssrcGroupRewriter, int sourceSSRC)
+    public SsrcRewriter(SsrcGroupRewriter ssrcGroupRewriter, long sourceSSRC)
     {
         this.ssrcGroupRewriter = ssrcGroupRewriter;
         this.sourceSSRC = sourceSSRC;
@@ -153,7 +153,7 @@ class SsrcRewriter
     /**
      * Gets the source SSRC for this <tt>SsrcRewriter</tt>.
      */
-    public int getSourceSSRC()
+    public long getSourceSSRC()
     {
         return this.sourceSSRC;
     }
@@ -288,7 +288,7 @@ class SsrcRewriter
         {
             SsrcGroupRewriter ssrcGroupRewriter = this.ssrcGroupRewriter;
             long timestampSsrcAsLong = ssrcGroupRewriter.getTimestampSsrc();
-            int sourceSsrc = getSourceSSRC();
+            long sourceSsrc = getSourceSSRC();
 
             if (timestampSsrcAsLong == SsrcRewritingEngine.INVALID_SSRC)
             {
@@ -300,13 +300,11 @@ class SsrcRewriter
             }
             else
             {
-                int timestampSsrc = (int) timestampSsrcAsLong;
-
-                if (sourceSsrc != timestampSsrc)
+                if (sourceSsrc != timestampSsrcAsLong)
                 {
                     // Rewrite the RTP timestamp of pkt in accord with the
                     // wallclock of timestampSsrc.
-                    rewriteTimestamp(p, sourceSsrc, timestampSsrc);
+                    rewriteTimestamp(p, sourceSsrc, timestampSsrcAsLong);
                 }
 
                 ssrcGroupRewriter.maybeUpliftTimestamp(p);
@@ -343,13 +341,13 @@ class SsrcRewriter
      */
     private void rewriteTimestamp(
             RawPacket p,
-            int sourceSsrc, int timestampSsrc)
+            long sourceSsrc, long timestampSsrc)
     {
         // TODO The only RTP timestamp rewriting supported at the time of this
         // writing depends on the availability of remote wallclocks.
 
         // Convert the SSRCs to RemoteClocks.
-        int[] ssrcs = { sourceSsrc, timestampSsrc };
+        long[] ssrcs = { sourceSsrc, timestampSsrc};
         RemoteClock[] clocks
             = ssrcGroupRewriter.ssrcRewritingEngine
             .getMediaStream().getStreamRTPManager().findRemoteClocks(ssrcs);
@@ -364,7 +362,7 @@ class SsrcRewriter
                 {
                     logger.debug(
                             "No remote wallclock available for SSRC "
-                                + (ssrcs[i] & 0xffffffffL) + "!.");
+                                + (ssrcs[i]) + "!.");
                 }
                 return;
             }
@@ -490,7 +488,7 @@ class SsrcRewriter
             // XXX We make sure in BasicRTCPTerminationStrategy that the
             // SSRCCache exists so we do the same here.
 
-            SSRCInfo sourceSSRCInfo = ssrcCache.cache.get(getSourceSSRC());
+            SSRCInfo sourceSSRCInfo = ssrcCache.cache.get((int) getSourceSSRC());
 
             if (sourceSSRCInfo != null)
                 return sourceSSRCInfo.extendSequenceNumber(origSeqnum);

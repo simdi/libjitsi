@@ -17,8 +17,6 @@ package org.jitsi.impl.neomedia.rtcp;
 
 import java.util.*;
 import java.util.concurrent.*;
-import javax.media.rtp.rtcp.*;
-import net.sf.fmj.media.rtp.*;
 import org.jitsi.service.neomedia.*;
 import org.jitsi.util.*;
 
@@ -32,6 +30,13 @@ import org.jitsi.util.*;
 public class RemoteClockEstimator
 {
     /**
+     * The <tt>Logger</tt> used by the <tt>RemoteClockEstimator</tt> class and
+     * its instances for logging output.
+     */
+    private static final Logger logger
+        = Logger.getLogger(RemoteClockEstimator.class);
+
+    /**
      * The {@link MediaType} of the SSRCs tracked by this instance. If
      * non-{@code null}, may provide hints to this instance such as video
      * defaulting to a clock frequency/rate of 90kHz.
@@ -42,7 +47,7 @@ public class RemoteClockEstimator
      * A {@code Map} of the (received) {@code RemoteClock}s by synchronization
      * source identifier (SSRC).
      */
-    private final Map<Integer, RemoteClock> remoteClocks
+    private final Map<Long, RemoteClock> remoteClocks
         = new ConcurrentHashMap<>();
 
     /**
@@ -73,8 +78,8 @@ public class RemoteClockEstimator
      */
     public void update(byte[] buf, int off, int len)
     {
-        int ssrc
-            = (int) RTCPHeaderUtils.getSenderSSRC(buf, off, len);
+        long ssrc
+            = RTCPHeaderUtils.getSenderSSRC(buf, off, len);
 
         long rtptimestamp = RTCPSenderInfoUtils.getTimestamp(buf, off, len)
             , ntptimestampmsw = RTCPSenderInfoUtils.getNtpTimestampMSW(buf, off, len)
@@ -115,11 +120,15 @@ public class RemoteClockEstimator
             }
         }
 
+
+        logger.debug("Updating the remote clock ssrc=" + ssrc
+            + ", systemTimeMs=" + systemTimeMs
+            + ", rtpTimestamp=" + rtptimestamp);
+
         // Replace whatever was in there before.
         remoteClocks.put(
                 ssrc,
                 new RemoteClock(
-                        ssrc,
                         systemTimeMs,
                         (int) rtptimestamp,
                         frequencyHz));
@@ -134,7 +143,7 @@ public class RemoteClockEstimator
      * @return the {@code RemoteClock} of the RTP stream identified by
      * {@code ssrc} or {@code null}
      */
-    public RemoteClock getRemoteClock(int ssrc)
+    public RemoteClock getRemoteClock(long ssrc)
     {
         return remoteClocks.get(ssrc);
     }
@@ -150,7 +159,7 @@ public class RemoteClockEstimator
      * @return an estimation of the remote {@code Timestamp} of {@code ssrc} at
      * time {@code localTimeMs}.
      */
-    public Timestamp estimate(int ssrc, long localTimeMs)
+    public Timestamp estimate(long ssrc, long localTimeMs)
     {
         RemoteClock remoteClock = getRemoteClock(ssrc);
 
