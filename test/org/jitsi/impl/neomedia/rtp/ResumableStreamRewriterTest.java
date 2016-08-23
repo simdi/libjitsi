@@ -28,7 +28,7 @@ public class ResumableStreamRewriterTest
     public void rewriteSequenceNumber()
         throws Exception
     {
-        ResumableStreamRewriter snr = new ResumableStreamRewriter();
+        ResumableStreamRewriter snr = new ResumableStreamRewriter(null);
         assertEquals(0, snr.seqnumDelta);
         assertEquals(-1, snr.highestSequenceNumberSent);
 

@@ -17,6 +17,7 @@ package org.jitsi.impl.neomedia.rtp;
 
 import org.jitsi.impl.neomedia.*;
 import org.jitsi.impl.neomedia.rtcp.*;
+import org.jitsi.service.neomedia.*;
 import org.jitsi.util.*;
 
 /**
@@ -45,6 +46,11 @@ public class ResumableStreamRewriter
     private static final boolean DEBUG = logger.isDebugEnabled();
 
     /**
+     *
+     */
+    private final Owner owner;
+
+    /**
      * The sequence number delta between what's been accepted and what's been
      * received, mod 2^16.
      */
@@ -69,9 +75,9 @@ public class ResumableStreamRewriter
     /**
      * Ctor.
      */
-    public ResumableStreamRewriter()
+    public ResumableStreamRewriter(Owner owner)
     {
-        this(-1, 0, -1, 0);
+        this(owner, -1, 0, -1, 0);
     }
 
     /**
@@ -87,9 +93,11 @@ public class ResumableStreamRewriter
      * and what's been received, mod 2^32.
      */
     public ResumableStreamRewriter(
+        Owner owner,
         int highestSequenceNumberSent, int seqnumDelta,
         long highestTimestampSent, long timestampDelta)
     {
+        this.owner = owner;
         this.seqnumDelta = seqnumDelta;
         this.highestSequenceNumberSent = highestSequenceNumberSent;
         this.highestTimestampSent = highestTimestampSent;
@@ -102,7 +110,8 @@ public class ResumableStreamRewriter
                     + highestSequenceNumberSent + ", seqnumDelta="
                     + seqnumDelta + ", highestTimestampSent="
                     + highestTimestampSent + ", timestampDelta="
-                    + timestampDelta);
+                    + timestampDelta
+                    + ", streamHashCode=" + owner.getMediaStream().hashCode());
         }
     }
 
@@ -138,7 +147,9 @@ public class ResumableStreamRewriter
             {
                 logger.debug("Rewriting RTP ssrc=" + ssrc
                         + " sequenceNumber=" + sequenceNumber
-                        + ", newSequenceNumber=" + newSequenceNumber);
+                        + ", newSequenceNumber=" + newSequenceNumber
+                        + ", streamHashCode="
+                        + owner.getMediaStream().hashCode());
             }
             RawPacket.setSequenceNumber(buf, off, newSequenceNumber);
             modified = true;
@@ -151,7 +162,8 @@ public class ResumableStreamRewriter
             {
                 logger.debug("Rewriting RTP ssrc=" + ssrc
                         + " timestamp=" + timestamp
-                        + ", newTimestamp=" + newTimestamp);
+                        + ", newTimestamp=" + newTimestamp
+                        + ", streamHashCode=" + owner.getMediaStream().hashCode());
             }
             RawPacket.setTimestamp(buf, off, len, newTimestamp);
             modified = true;
@@ -225,7 +237,8 @@ public class ResumableStreamRewriter
         {
             logger.debug((rewrite ? "Rewriting" : "Restoring")
                     +  " RTCP timestamp=" + ts
-                    + ", newTimestamp=" + newTs);
+                    + ", newTimestamp=" + newTs
+                    + ", streamHashCode=" + owner.getMediaStream().hashCode());
         }
 
         boolean ret = RTCPSenderInfoUtils.setTimestamp(buf, off, len, newTs);
@@ -317,5 +330,10 @@ public class ResumableStreamRewriter
 
             return timestamp;
         }
+    }
+
+    public interface Owner
+    {
+        MediaStream getMediaStream();
     }
 }

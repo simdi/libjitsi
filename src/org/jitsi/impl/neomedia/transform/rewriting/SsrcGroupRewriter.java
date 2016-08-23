@@ -507,7 +507,9 @@ class SsrcGroupRewriter
                         + " with SEQNUM " + p.getSequenceNumber()
                         + " from SSRC " + p.getSSRCAsLong()
                         + " because of delta " + delta + " to "
-                        + minTimestamp);
+                        + minTimestamp
+                        + ", streamHashCode=" + ssrcRewritingEngine
+                        .getMediaStream().hashCode());
             }
 
             if (delta < -300000 && WARN)
@@ -523,7 +525,9 @@ class SsrcGroupRewriter
                         + timestamp + " with SEQNUM "
                         + p.getSequenceNumber() + " from SSRC "
                         + p.getSSRCAsLong() + " because of delta=" + delta +
-                        " to " + minTimestamp);
+                        " to " + minTimestamp
+                        + ", streamHashCode="
+                        + ssrcRewritingEngine.getMediaStream().hashCode());
             }
 
             p.setTimestamp(minTimestamp);

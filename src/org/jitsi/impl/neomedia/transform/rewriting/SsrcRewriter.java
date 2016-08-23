@@ -182,11 +182,12 @@ class SsrcRewriter
 
             if (DEBUG)
             {
-                logger.debug(
-                        "Retransmitting packet with SEQNUM " + seqnum
-                            + " of SSRC " + ssrc
-                            + " retran SSRC: " + pkt.getSSRCAsLong()
-                            + " retran SEQNUM: " + pkt.getSequenceNumber());
+                logger.debug("Retransmitting packet seqnum=" + seqnum
+                        + ", ssrc=" + ssrc
+                        + ", retran_ssrc=" + pkt.getSSRCAsLong()
+                        + ", retran_seqnum=" + pkt.getSequenceNumber()
+                        + ", streamHashCode=" + ssrcGroupRewriter
+                            .ssrcRewritingEngine.getMediaStream().hashCode());
             }
         }
         else
@@ -249,10 +250,13 @@ class SsrcRewriter
 
             if (TRACE)
             {
-                logger.trace("Rewriting (SSRC=" + p.getSSRCAsLong()
+                logger.trace("Rewriting timestamp from the cache "
+                    + "ssrc=" + p.getSSRCAsLong()
                     + ", seqnum=" + p.getSequenceNumber()
-                    + ") timestamp using cached value "
-                    + oldValue + " to " + p.getTimestamp());
+                    + ", timestamp" + oldValue
+                    + ", newTimestamp" + p.getTimestamp()
+                    + ", streamHashCode=" + ssrcGroupRewriter
+                        .ssrcRewritingEngine.getMediaStream().hashCode());
             }
 
             rewritten = true;
@@ -267,11 +271,13 @@ class SsrcRewriter
 
                 if (TRACE)
                 {
-                    logger.trace("Rewriting re-ordered frame with "
-                        + " ssrc=" + p.getSSRCAsLong()
+                    logger.trace("Rewriting re-ordered frame "
+                        + "ssrc=" + p.getSSRCAsLong()
                         + ", seqnum=" + p.getSequenceNumber()
-                        + ") timestamp using cached value "
-                        + oldValue + " to " + p.getTimestamp());
+                        + ", timestamp" + oldValue
+                        + ", newTimestamp" + p.getTimestamp()
+                        + ", streamHashCode=" + ssrcGroupRewriter
+                        .ssrcRewritingEngine.getMediaStream().hashCode());
                 }
 
                 rewritten = true;
@@ -310,10 +316,13 @@ class SsrcRewriter
 
             if (TRACE)
             {
-                logger.trace("Fully rewriting (SSRC=" + p.getSSRCAsLong()
+                logger.trace("Fully rewriting RTP timestamp "
+                    + "ssrc=" + p.getSSRCAsLong()
                     + ", seqnum=" + p.getSequenceNumber()
-                    + ") timestamp " + oldValue
-                    + " to " + newValue);
+                    + ", timestamp" + oldValue
+                    + ", newTimestamp" + p.getTimestamp()
+                    + ", streamHashCode=" + ssrcGroupRewriter
+                    .ssrcRewritingEngine.getMediaStream().hashCode());
             }
 
             latestTimestampEntry

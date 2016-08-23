@@ -19,6 +19,7 @@ import net.sf.fmj.media.rtp.*;
 import org.jitsi.impl.neomedia.*;
 import org.jitsi.impl.neomedia.rtcp.*;
 import org.jitsi.impl.neomedia.rtp.*;
+import org.jitsi.service.neomedia.*;
 
 import javax.media.*;
 import java.util.*;
@@ -41,6 +42,20 @@ public class DiscardTransformEngine
      */
     private final Map<Long, ResumableStreamRewriter> ssrcToRewriter
         = new HashMap<>();
+
+    /**
+     *
+     */
+    private final MediaStream stream;
+
+    /**
+     *
+     * @param stream
+     */
+    public DiscardTransformEngine(MediaStream stream)
+    {
+        this.stream = stream;
+    }
 
     /**
      * The {@link PacketTransformer} for RTCP packets.
@@ -66,7 +81,15 @@ public class DiscardTransformEngine
             ResumableStreamRewriter rewriter = ssrcToRewriter.get(ssrc);
             if (rewriter == null)
             {
-                rewriter = new ResumableStreamRewriter();
+                rewriter = new ResumableStreamRewriter(
+                    new ResumableStreamRewriter.Owner()
+                    {
+                        @Override
+                        public MediaStream getMediaStream()
+                        {
+                            return stream;
+                        }
+                    });
                 ssrcToRewriter.put(ssrc, rewriter);
             }
 

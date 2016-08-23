@@ -171,7 +171,15 @@ public class StreamRTPManager
         ResumableStreamRewriter rewriter = ssrcToRewriter.get(ssrc);
         if (rewriter == null && create)
         {
-            rewriter = new ResumableStreamRewriter();
+            rewriter = new ResumableStreamRewriter(
+                new ResumableStreamRewriter.Owner()
+                {
+                    @Override
+                    public MediaStream getMediaStream()
+                    {
+                        return stream;
+                    }
+                });
             ssrcToRewriter.put(ssrc, rewriter);
         }
 
